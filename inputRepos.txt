@@ -1,0 +1,2 @@
+https://ESegundoRolon:Prisma17@github.com/TodoPago/BVTP_Transactions.git
+https://ESegundoRolon:Prisma17@github.com/TodoPago/BSA_Proxy_TodoPago.git
