@@ -1,0 +1,62 @@
+============================MAVEN===========================================
+
+version="$(cat pom.xml | grep -m 1 "<version>.*</version>$" | awk -F'[><]' '{print $3}')"
+echo "${version}"
+
+//grep -m 1 "<version>.*</version>$" ---> get first match of all nodes version. Result <version>1.21.7</version>
+//awk -F'[><]' '{print $3}' ---> remove the <> characters, get the middle value. Result 1.21.7
+// Only works if the first version match of the pom is the project build version.
+============================Gradle==========================================
+
+version="$(cat build.gradle | grep -m 1 "version:" | awk '{print $2}' | tr -d ',' | tr -d "[^']")"
+echo "${version}"
+
+//grep -m 1 "version:"  ---> get the first match of the field version:
+//awk '{print $2}' print the field next to the parameter version:
+//tr -d ',' | tr -d "[^']" ---> removes the '' characteres and comas.
+//Only works if the version: field is set at the begining of the build.gradle and the parameter is version: and not version :
+============================================================================
+#!/bin/sh
+
+echo "==========================================Todo Pago - Microservices=========================================="
+echo "==========================Bourne Shell script for tagging Microservices git repositories====================="
+echo "==========================Inputs: InputRepositories.txt (Mandatory) One URL to git clone repositorie per line"
+echo "==================================================Begining==================================================="
+fileName='InputRepositories.txt'
+if [ ! -f InputRepositories.txt ]; then
+    echo "Need InputRepositories.txt with the repos..."
+	echo "Exit program"
+	exit
+fi
+
+echo "=======================================Reading InputRepositories file========================================"
+while IFS='' read -r line
+do	
+	echo "Cloning $line"
+    git clone $line
+	projectName="${line##*/}"
+	echo "============="
+done < $fileName
+echo "=============Getting project version for all downloaded projects============="
+for dir in */;
+do
+    dir=${dir%*/}
+    echo ${dir##*/}
+	cd "$dir"
+	count="$(ls -1 pom.xml 2>/dev/null | wc -l)"
+	if [ $count != 0 ]
+	then
+	version="$(cat pom.xml | grep -m 1 "<version>.*</version>$" | awk -F'[><]' '{print $3}')"
+	message=' is a maven project and its version is '
+	string=$PWD$message$version
+	echo $string
+	echo "============="
+	else
+	version="$(cat build.gradle | grep -m 1 "version:" | awk '{print $2}' | tr -d ',' | tr -d "[^']")"
+	message=' is a maven project and its version is '
+	string=$PWD$message$version
+	echo $string
+	echo "============="
+	fi
+	cd ..
+done
