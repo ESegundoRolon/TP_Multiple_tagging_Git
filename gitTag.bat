@@ -8,7 +8,11 @@ IF %ERRORLEVEL% NEQ 0 (
 	pause
 	exit
 )
-
+@echo ---------------------------------------
+@echo This bat needs NodeJS and Gr to work
+@echo gr: https://github.com/mixu/gr
+@echo NodeJS: https://nodejs.org/es/
+@echo ---------------------------------------
 call npm install -g git-run
 
 rem cd %SETUP_DIR%
@@ -74,40 +78,14 @@ GOTO PROCESSING
 @echo ------------------------------------------------------------------------------------------
 
 CD /d %~dp1
-:: To get latest abbriviated hash from git
-:: git log -n 1  --pretty="format:%h"
-:: To get current tag
-:: git describe --tags
-:: git describe --tags --long | sed "s/v\([0-9]*\).*/\1/"'
-
 ::Download each repositories from the input file
-rem FOR /F "tokens=1 delims=" %%A in (%1) do ("%git_bin%\git.exe" clone %%A)
+FOR /F "tokens=1 delims=" %%A in (%1) do ("%git_bin%\git.exe" clone %%A)
 ::Add each download repo to the gr tag
 for /D %%B in (*) do ( gr @tag %%B )
-::Aply the tag for all the repos tagged and push it
-
-rem for /D %%B in (*) do ( @echo %%B)
-rem FOR /F "tokens=1 delims=" %%A in (%1) do ("%git_bin%\git.exe" clone %%A)
-::!current_tag! 
-REM FOR /F "tokens=1 delims=" %%A in ('echo !current_tag! ^| sed "s/\(v[0-9]*\.[0-9]*\.[0-9]*\)-[0-9]*-g.*/\1/"') do SET tag_only=%%A
-REM FOR /F "tokens=1 delims=" %%A in ('echo !current_tag! ^| sed "s/v\([0-9]*\).*/\1/"') do SET major_version=%%A
-REM FOR /F "tokens=1 delims=" %%A in ('echo !current_tag! ^| sed "s/v[0-9]*\.\([0-9]*\).*/\1/"') do SET minor_version=%%A
-REM FOR /F "tokens=1 delims=" %%A in ('echo !current_tag! ^| sed "s/v[0-9]*\.[0-9]*\.\([0-9]*\).*/\1/"') do SET revision=%%A
-REM FOR /F "tokens=1 delims=" %%A in ('echo !current_tag! ^| sed "s/v[0-9]*\.[0-9]*\.[0-9]*-\([0-9]*\).*/\1/"') do SET commits_since_tag=%%A
-REM FOR /F "tokens=1 delims=" %%A in ('echo !current_tag! ^| sed "s/v[0-9]*\.[0-9]*\.[0-9]*-[0-9]*-g\(.*\)/\1/"') do SET git_hash=%%A
-REM SET git_hash=!git_hash: =!
-REM FOR /F "tokens=1 delims=" %%A in ('"!git_bin!\git.exe" describe !tag_only! --tags --long') do SET git_tag_complete_with_hash=%%A
-REM FOR /F "tokens=1 delims=" %%A in ('echo !git_tag_complete_with_hash! ^| sed "s/v[0-9]*\.[0-9]*\.[0-9]*-[0-9]*-g\(.*\)/\1/"') do SET git_tag_hash=%%A
-REM SET git_tag_hash=!git_tag_hash: =!
-
-REM @echo   Tag Only:          !tag_only!
-REM @echo   Current Tag:       !current_tag!
-REM @echo   Major Version:     !major_version!
-REM @echo   Minor Version:     !minor_version!
-REM @echo   Revision:          !revision!
-REM @echo   Commits since tag: !commits_since_tag!
-REM @echo   Git Hash:          !git_hash!
-REM @echo   Git Tag Hash:      !git_tag_hash!
+::Aply the tag to all the repositories under the tag @tag
+for /D %%C in (*) do ( echo "The repository %%C has the tags: " & CD %%C && "%git_bin%\git.exe" git tag && CD ..)
+@tag git tag -a %3 -m "%3"
+::Print in screen the tag of each repo
 
 
 GOTO FINITO
@@ -131,6 +109,7 @@ GOTO FINITO
 @echo --------------------------------------------------------------------------------------
 
 :FINITO
+pause
 EndLocal&SET exit_code=!exit_code!
 popd
 exit /B !exit_code!
